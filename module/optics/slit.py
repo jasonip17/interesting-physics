@@ -91,7 +91,7 @@ def plot2_DoubleSlitContrast(x, params, gamma1=1, gamma2=0):
     ax_top_right.set_title(fr"$\gamma$ = {gamma2}")
     ax_top_right.set_yticks([])
 
-    ax_bot_right.plot(x, I_particle, color='teal') # Made this one teal for contrast!
+    ax_bot_right.plot(x, I_particle, color='teal')
     ax_bot_right.set_xlabel("Screen Position (x)")
     ax_bot_right.axhline(0, color='black', linewidth=1)
     ax_bot_right.grid(True, alpha=0.5)
