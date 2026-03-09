@@ -113,7 +113,7 @@ def jwst_pupil(X, Y, angle_x, angle_z, xp):
     - Sub-pixel analytical anti-aliasing using Signed Distance Functions (SDFs)
     
     X, Y : 2D grid arrays in physical meters
-    angle_x, angle_z : Incident angles in degrees (matching your psi_ini)
+    angle_x, angle_z : Incident angles in degrees
     xp : numpy or cupy namespace
     """
     # Each segment is about 1.32m across, creating a ~6.5m mirror
@@ -197,7 +197,6 @@ def jwst_pupil(X, Y, angle_x, angle_z, xp):
     # -----------------------------------------------------------
     # Asymmetrical Spider Struts
     # -----------------------------------------------------------
-    
     # Strut 1: The Top Strut (90 degrees) - This causes the two horizontal spikes
     d_x1 = xp.abs(X_shifted)
     in_x1 = xp.clip(((strut_width / 2) - d_x1) / dx_pupil + 0.5, 0.0, 1.0)
