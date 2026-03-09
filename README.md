@@ -23,6 +23,19 @@ This folder contains all the interactive Jupyter Notebooks and standalone Python
 * **`images/`:** Stores generated visual outputs, categorized into `GR`, `JWST`, and `optics` subfolders.
 * **`videos/`:** Stores generated `.mp4` and `.gif` animation files, categorized into `GR` and `optics` subfolders.
 
+
+## Reference: JWST Dimensions
+
+The simulations are modeled after the actual physical parameters of the James Webb Space Telescope:
+
+* Primary Mirror Diameter: ~6.5 m (21.3 ft)
+* Clear Aperture: 25 m² 
+* Mirror Segments: 18 hexagonal segments
+* Focal Length: 131.4 m
+* Sunshield Dimensions: 21.197 m x 14.162 m (69.5 ft x 46.5 ft)
+
+*(Data sourced from the [NASA JWST Fact Sheet](https://science.nasa.gov/mission/webb/fact-sheet/))*
+
 ## Getting Started
 
 To run the simulations, navigate into the `examples` directory first. For example, from the project root in your terminal:
