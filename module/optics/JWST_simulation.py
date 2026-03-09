@@ -29,9 +29,7 @@ def psi_pupil(angle_x, angle_z, aperture_func, wavelength, L, N, xp):
 
     if alpha_user > 0.9 * alpha_max:
         print(f"WARNING: Angle close to or exceeding Nyquist limit. Auto-adjusting N from {N}...")
-        
-        # We need: alpha_user <= 0.9 * arcsin(wavelength * N_new / (2 * L))
-        # Rearranging for N_new: N_new >= (2 * L / wavelength) * sin(alpha_user / 0.9)
+
         target_angle = alpha_user / 0.9
         target_sin = xp.sin(target_angle) if target_angle < (xp.pi / 2) else 1.0
         N_min_required = (2 * L / wavelength) * target_sin
@@ -118,15 +116,12 @@ def jwst_pupil(X, Y, angle_x, angle_z, xp):
     angle_x, angle_z : Incident angles in degrees (matching your psi_ini)
     xp : numpy or cupy namespace
     """
-    # -----------------------------------------------------------
-    # 1. Physical Dimensions (NASA Blueprints)
-    # -----------------------------------------------------------
     # Each segment is about 1.32m across, creating a ~6.5m mirror
     flat_to_flat = 1.32      
     gap = 0.01                
     pitch = flat_to_flat + gap 
     
-    # Secondary mirror and support structure dimensions
+    # Secondary mirror and support structure
     D_sec = 0.74              # Diameter of the central obscuration
     strut_width = 0.05        # Faintness of secondary spikes
     d_struts = 7.2            # Separates primary and secondary planes
@@ -134,15 +129,13 @@ def jwst_pupil(X, Y, angle_x, angle_z, xp):
     # Initialize a 100% absorbing (0) mask
     pupil = xp.zeros_like(X, dtype=float)
     
-    # NEW: Calculate the physical width of a single pixel for anti-aliasing
-    # Assumes a square grid where dx == dy
-    dx_pupil = xp.abs(X[0, 1] - X[0, 0])
+    # Calculate the physical width of a single pixel for anti-aliasing
+    dx_pupil = xp.abs(X[0, 1] - X[0, 0]) # Assumes a square grid where dx == dy
     
     # -----------------------------------------------------------
-    # 2. Map the 18 Hexagonal Segments (Stationary Primary Plane)
+    # The 18 Hexagonal Segments (Stationary Primary Plane)
     # -----------------------------------------------------------
-    # FIXED: Re-oriented to 'flat-topped' hexagons to generate 
-    # vertical and angled spikes, matching real JWST geometry.
+    # vertical and angled spikes
     v1_x, v1_y = 0.0, pitch
     v2_x, v2_y = pitch * xp.sqrt(3) / 2, pitch / 2
     
@@ -155,7 +148,7 @@ def jwst_pupil(X, Y, angle_x, angle_z, xp):
     r_in = flat_to_flat / 2.0  # Apothem: center to flat edge
     
     for q, r in segments:
-        # Physical center of this specific hexagon
+        # Center of this specific hexagon
         cx = q * v1_x + r * v2_x
         cy = q * v1_y + r * v2_y
         
@@ -163,7 +156,7 @@ def jwst_pupil(X, Y, angle_x, angle_z, xp):
         dx = X - cx
         dy = Y - cy
         
-        # FIXED: Distance checks update for flat-topped hexagons
+        # Distance checks update for flat-topped hexagons
         d1 = xp.abs(dy)
         d2 = xp.abs(xp.sqrt(3)/2 * dx + 0.5 * dy)
         d3 = xp.abs(xp.sqrt(3)/2 * dx - 0.5 * dy)
@@ -171,8 +164,7 @@ def jwst_pupil(X, Y, angle_x, angle_z, xp):
         # SDF: Maximum distance to any of the 3 axes
         d_max = xp.maximum(xp.maximum(d1, d2), d3)
         
-        # NEW: Smooth the edge by mapping (apothem - d_max) to a 
-        # range of [0, 1] over a width of exactly one pixel.
+        # Smooth the edge by mapping (apothem - d_max) to a range of [0, 1] over a width of exactly one pixel
         dist_to_edge = r_in - d_max
         hex_mask = xp.clip(dist_to_edge / dx_pupil + 0.5, 0.0, 1.0)
         
@@ -180,14 +172,12 @@ def jwst_pupil(X, Y, angle_x, angle_z, xp):
         pupil = xp.maximum(pupil, hex_mask)
 
     # -----------------------------------------------------------
-    # 3. Calculate 3D Parallax Shift for Secondary Structures
+    # 3D Parallax Shift for Secondary Structures
     # -----------------------------------------------------------
-    # This shift is what makes your simulation physically accurate for
-    # objects at high incident angles.
     phi = xp.radians(angle_x)
     theta = xp.radians(angle_z)
     
-    # Tiny epsilon to prevent division by zero at normal angles (90,0)
+    # Prevent division by zero at normal angles (90,0)
     denom = xp.sin(phi) * xp.cos(theta) + 1e-12
     shift_x = -d_struts * (xp.cos(phi) / denom)
     shift_y = -d_struts * xp.tan(theta)
@@ -197,7 +187,7 @@ def jwst_pupil(X, Y, angle_x, angle_z, xp):
     Y_shifted = Y - shift_y
 
     # -----------------------------------------------------------
-    # 4. Add the Central Obscuration (Secondary Mirror)
+    # Add the Central Obscuration (Secondary Mirror)
     # -----------------------------------------------------------
     R_grid = xp.sqrt(X_shifted**2 + Y_shifted**2)
     # SDF: (radius - D_sec/2) maps (0 inside, 1 outside) with a smooth edge
@@ -205,20 +195,17 @@ def jwst_pupil(X, Y, angle_x, angle_z, xp):
     pupil = pupil * sec_mask
     
     # -----------------------------------------------------------
-    # 5. Add the Asymmetrical Spider Struts
+    # Asymmetrical Spider Struts
     # -----------------------------------------------------------
     
-    # Strut 1: The Top Strut (90 degrees)
-    # Causes the two horizontal spikes.
+    # Strut 1: The Top Strut (90 degrees) - This causes the two horizontal spikes
     d_x1 = xp.abs(X_shifted)
     in_x1 = xp.clip(((strut_width / 2) - d_x1) / dx_pupil + 0.5, 0.0, 1.0)
     in_y1 = xp.clip(Y_shifted / dx_pupil + 0.5, 0.0, 1.0)
     strut1_mask = 1.0 - (in_x1 * in_y1)
     pupil = pupil * strut1_mask
     
-    # Strut 2: Bottom-Right (FIXED: Angle corrected from -30 to -60 degrees)
-    # This is key! This asymmetrical strut is hidden by the spikes
-    # from the hexagons, preventing redundant spikes.
+    # Strut 2: Bottom-Right
     ang2 = xp.radians(-60)
     X2 = X_shifted * xp.cos(ang2) + Y_shifted * xp.sin(ang2)
     Y2 = -X_shifted * xp.sin(ang2) + Y_shifted * xp.cos(ang2)
@@ -229,7 +216,7 @@ def jwst_pupil(X, Y, angle_x, angle_z, xp):
     strut2_mask = 1.0 - (in_y2 * in_x2)
     pupil = pupil * strut2_mask
     
-    # Strut 3: Bottom-Left (FIXED: Angle corrected from 210 to 240 degrees)
+    # Strut 3: Bottom-Left
     ang3 = xp.radians(240)
     X3 = X_shifted * xp.cos(ang3) + Y_shifted * xp.sin(ang3)
     Y3 = -X_shifted * xp.sin(ang3) + Y_shifted * xp.cos(ang3)
@@ -254,8 +241,6 @@ def get_true_blackbody_rgb(temp):
     cmfs = colour.MSDS_CMFS['CIE 1931 2 Degree Standard Observer']
     
     XYZ = colour.sd_to_XYZ(sd, cmfs)
-    
-    # Strictly use np.max and np.clip
     RGB = colour.XYZ_to_sRGB(XYZ / np.max(XYZ))
     
     return np.clip(RGB, 0, 1)
