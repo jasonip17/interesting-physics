@@ -11,6 +11,7 @@ This directory contains the Python scripts and mathematical models used to run t
 
 * **`GR/` (General Relativity):** Handles the mathematics of curved spacetime. Includes scripts for modeling light ray orbits (`lightray_orbit.py`) and analyzing effective potentials (`schwarzschild_effective_potential.py`).
 * **`optics/`:** Contains scripts for wave optics and diffraction phenomena. Includes specific models for Arago spots (`arago_spot.py`), general diffraction (`general_diffraction.py`), knife-edge diffraction (`knife_edge.py`), and slit diffraction (`slit.py`). It also contains the core `JWST_simulation.py` engine.
+* **`thermo/`:** Contains Bose-Einstein condensate (BEC) simulation.
 
 ### Examples and Simulations (`examples/`)
 This folder contains all the interactive Jupyter Notebooks and standalone Python scripts that put the core modules to use. **Note: All Python scripts within this directory must be executed from inside the `examples/` folder.**
@@ -18,6 +19,7 @@ This folder contains all the interactive Jupyter Notebooks and standalone Python
 * **Notebooks:** `light_orbit.ipynb` and `optics.ipynb` for photon orbits and quantum nature of light.
 * **Astrophysics & JWST:** Scripts for simulating the Cosmic Microwave Background (`cmb_gaussian.py`), the JWST mirror (`jwst_mirror.py`), and various starfields (`starfield_bright.py`, `starfield_colorful.py`, `starfield_gravlense.py`).
 * **Optics:** Scripts for generating static visualizations (`optics_image.py`) and animations (`optics_animation.py`).
+* **Thermodynamics:** `thermo.ipynb` contains properties of BEC mainly.
 
 ### Outputs
 * **`images/`:** Stores generated visual outputs, categorized into `GR`, `JWST`, and `optics` subfolders.
@@ -65,3 +67,17 @@ pip install numpy matplotlib scipy astropy camb
 ```
 
 *(Refer to the [CuPy documentation](https://docs.cupy.dev/en/stable/install.html) for specific installation instructions corresponding to your CUDA version if you wish to use GPU acceleration).*
+
+## Other Work: The VIP Experiment
+
+Aside from the physics simulations in this repository, I also developed the [vipbege](https://github.com/simonemanti/vipbege) Python package with [Simone Manti](https://orcid.org/0000-0003-3770-0863) for signal processing in the VIP Experiment. 
+
+While originally designed for the VIP Experiment, `vipbege` provides the tools for processing and analyzing signal pulses across a wide range of applications.
+
+Features include:
+
+* **Analysis:** Extracting data and characterizing raw signal pulses.
+* **Simulation:** Forward-modeling and generating expected pulse shapes.
+* **ML Denoising:** Applying machine learning (CNN mainly) to denoise and clean raw data.
+
+For more details on the physics, methodology, and results, please refer to our published [paper](https://arxiv.org/abs/2512.09777).
