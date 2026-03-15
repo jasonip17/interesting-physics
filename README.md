@@ -4,7 +4,25 @@ This repository contains interesting physical phenomena that I have simulated, f
 
 ## Structure
 
-The repository is separated into core computational modules, runnable examples, and output directories.
+The repository is separated into core modules, examples, and output directories.
+
+```
+interesting_physics/
+│
+├── examples/
+│   ├── light_orbit.ipynb
+│   ├── optics.ipynb
+│   └── ...
+│
+├── module/
+│   ├── GR/
+│   ├── optics/
+│   └── thermo/
+│
+├── images/
+├── videos/
+└── ...
+```
 
 ### Core Modules (`module/`)
 This directory contains the Python scripts and mathematical models used to run the simulations. 
@@ -80,4 +98,4 @@ Features include:
 * **Simulation:** Forward-modeling and generating expected pulse shapes.
 * **ML Denoising:** Applying machine learning (CNN mainly) to denoise and clean raw data.
 
-For more details on the physics, methodology, and results, please refer to our published [paper](https://arxiv.org/abs/2512.09777).
+For more details on the physics, methodology, and results, please refer to the [paper](https://arxiv.org/abs/2512.09777).
